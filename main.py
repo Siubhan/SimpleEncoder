@@ -1,6 +1,10 @@
-import wx
 
-from DB import DB
+import webbrowser
+
+import pyperclip as pyperclip
+import wx
+import wx.html
+
 from TransparentText import TransparentText
 from Uppr import UpprP
 from PlusTwoCh import PTC
@@ -62,7 +66,7 @@ class GUI(wx.Frame):
         self.b3 = wx.Button(bitmap1, label="Довідка", pos=(75, 220), size=(150, 50))
         self.b1.Bind(wx.EVT_BUTTON, self.setCryptoPanel)
         self.b2.Bind(wx.EVT_BUTTON, self.setDecrPanel)
-        self.b3.Bind(wx.EVT_BUTTON, lambda evt: self.showHelp)
+        self.b3.Bind(wx.EVT_BUTTON, self.showHelp)
         self.b1.SetFont(self.font2)
         self.b2.SetFont(self.font2)
         self.b3.SetFont(self.font2)
@@ -71,8 +75,11 @@ class GUI(wx.Frame):
         self.mainPanel.Layout()
         self.Layout()
 
-    def showHelp(self):
-        pass
+    def showHelp(self, event):
+        url = r'file:///Users/shiva/PycharmProjects/kp/dtp/index.html'
+        b = webbrowser.get('Safari')
+
+        b.open_new(url)
 
     def setCryptoPanel(self, event):
         self.mainPanel.Hide()
@@ -80,7 +87,7 @@ class GUI(wx.Frame):
         self.WriteTF.Enable(True)
         bitmap2 = wx.StaticBitmap(self.cryptoPanel, -1, self.bgIm, (0, 0))
         txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
-        txt2 = TransparentText(bitmap2, label="Оброблені дані", pos=(380, 45))
+        txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(380, 45))
         txt3 = TransparentText(bitmap2, label="Оригінальні дані", pos=(90, 45))
         txt4 = TransparentText(bitmap2, label="Вибір алгоритму:", pos=(35, 307))
 
@@ -121,16 +128,16 @@ class GUI(wx.Frame):
         self.ReadFF.Enable(True)
         self.WriteTF.Enable(True)
         bitmap2 = wx.StaticBitmap(self.decryptoPanel, -1, self.bgIm, (0, 0))
-        txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(170, 10))
-        txt2 = TransparentText(bitmap2, label="Оброблені дані", pos=(400, 40))
-        txt3 = TransparentText(bitmap2, label="Оригінальні дані", pos=(100, 40))
+        txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
+        txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(400, 40))
+        txt3 = TransparentText(bitmap2, label="Дешифровані дані", pos=(100, 40))
         txt4 = TransparentText(bitmap2, label="Вибір алгоритму:", pos=(35, 307))
 
         self.rsltDecr = wx.TextCtrl(bitmap2, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(260, 220), pos=(305, 70))
         self.rawData = wx.TextCtrl(bitmap2, style=wx.TE_MULTILINE, size=(260, 220), pos=(20, 70))
 
         btnEx = wx.Button(bitmap2, label="До меню", pos=(20, 350), size=(100, 30))
-        btnEnc = wx.Button(bitmap2, label="Зашифрувати", pos=(465, 350), size=(100, 30))
+        btnEnc = wx.Button(bitmap2, label="Дешифрувати", pos=(465, 350), size=(100, 30))
         btnEx.Bind(wx.EVT_BUTTON, lambda evt: self.setMainPanel())
 
         txt1.SetForegroundColour("#E65D17")
@@ -148,7 +155,6 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
 
         self.rawData.AppendText("Введіть дані, для дешифрування")
-        btnEnc.SetLabel("Дешифрувати")
         cryptMet = ['PTC', 'MTC', 'SSC']
 
         self.comboDecrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
@@ -185,7 +191,7 @@ class GUI(wx.Frame):
         InfoB.AppendSubMenu(Info, "&Про розробника")
         InfoB.Append(HelpItem)
         self.Bind(wx.EVT_MENU, self.Quit, ExitItem)
-
+        self.Bind(wx.EVT_MENU, self.showHelp, HelpItem)
         NavEdit = wx.Menu()
         self.ReadFF = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитати з файлу", "Зчитати дані з файлу")
         self.WriteTF = wx.MenuItem(NavEdit, wx.ID_FILE1, "Записати до файлу", "Записати дані до файлу")
@@ -201,6 +207,9 @@ class GUI(wx.Frame):
         FileB.AppendSeparator()
         menuBar.Append(InfoB, '&Інформація')
 
+        self.Bind(wx.EVT_MENU, self.on_cut, cutItem)
+        self.Bind(wx.EVT_MENU, self.on_paste, pasteItem)
+        self.Bind(wx.EVT_MENU,self.on_copy, copyItem)
         self.Bind(wx.EVT_MENU, self.wF, self.WriteTF)
         self.Bind(wx.EVT_MENU, self.rF, self.ReadFF)
 
@@ -215,6 +224,19 @@ class GUI(wx.Frame):
     def Quit(self, e):
         self.Close()
 
+    def on_copy(self, event):
+        widget = self.FindFocus()
+        pyperclip.copy(widget.GetValue())
+
+    def on_cut(self, event):
+        widget = self.FindFocus()
+        pyperclip.copy(widget.GetValue())
+        widget.Clear()
+
+    def on_paste(self, event):
+        widget = self.FindFocus()
+        widget.WriteText(pyperclip.paste())
+
     def wF(self, e):
         u = UpprP(self, title='Запис до файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
         u.ShowModal()
@@ -226,8 +248,8 @@ class GUI(wx.Frame):
         u.Destroy()
 
 
+
 if __name__ == '__main__':
-    db = DB()
     app = wx.App()
     gui = GUI(None, size=(600, 420), style=wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.CAPTION)
 
