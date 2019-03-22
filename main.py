@@ -9,7 +9,8 @@ from TransparentText import TransparentText
 from Uppr import UpprP
 from PlusTwoCh import PTC
 from MinusTenCh import MTC
-from ShotoSlozhnoeCh import SSC
+from SSC import SSC
+from LCA import Coder
 
 
 class GUI(wx.Frame):
@@ -39,6 +40,8 @@ class GUI(wx.Frame):
             self.rsltEncr.AppendText(PTC('encrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltEncr.AppendText(MTC('encrypt', txt).getVal())
+        elif par=='BASE64':
+            self.rsltEncr.AppendText(Coder('encrypt',txt).getValue())
         else:
             self.rsltEncr.AppendText(SSC('encrypt', txt).getVal())
 
@@ -49,6 +52,8 @@ class GUI(wx.Frame):
             self.rsltDecr.AppendText(PTC('decrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltDecr.AppendText(MTC('decrypt', txt).getVal())
+        elif par=='BASE64':
+            self.rsltDecr.AppendText(Coder('decrypt',txt).getValue())
         else:
             self.rsltDecr.AppendText(SSC('decrypt', txt).getVal())
 
@@ -70,21 +75,22 @@ class GUI(wx.Frame):
         self.b1.SetFont(self.font2)
         self.b2.SetFont(self.font2)
         self.b3.SetFont(self.font2)
-        self.ReadFF.Enable(False)
-        self.WriteTF.Enable(False)
+        self.ReadFFС.Enable(False)
+        self.WriteTFС.Enable(False)
+        self.ReadFFD.Enable(False)
+        self.WriteTFD.Enable(False)
         self.mainPanel.Layout()
         self.Layout()
 
     def showHelp(self, event):
         url = r'file:///Users/shiva/PycharmProjects/kp/dtp/index.html'
         b = webbrowser.get('Safari')
-
         b.open_new(url)
 
     def setCryptoPanel(self, event):
         self.mainPanel.Hide()
-        self.ReadFF.Enable(True)
-        self.WriteTF.Enable(True)
+        self.ReadFFС.Enable(True)
+        self.WriteTFС.Enable(True)
         bitmap2 = wx.StaticBitmap(self.cryptoPanel, -1, self.bgIm, (0, 0))
         txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
         txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(380, 45))
@@ -114,7 +120,7 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
         self.origMes.AppendText("Введіть дані, для шифрування")
 
-        cryptMet = ['PTC', 'MTC', 'SSC']
+        cryptMet = ['PTC', 'MTC', 'SSC','BASE64']
 
         self.comboCrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                       style=wx.CB_READONLY)
@@ -125,8 +131,8 @@ class GUI(wx.Frame):
 
     def setDecrPanel(self, event):
         self.mainPanel.Hide()
-        self.ReadFF.Enable(True)
-        self.WriteTF.Enable(True)
+        self.ReadFFD.Enable(True)
+        self.WriteTFD.Enable(True)
         bitmap2 = wx.StaticBitmap(self.decryptoPanel, -1, self.bgIm, (0, 0))
         txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
         txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(400, 40))
@@ -155,7 +161,7 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
 
         self.rawData.AppendText("Введіть дані, для дешифрування")
-        cryptMet = ['PTC', 'MTC', 'SSC']
+        cryptMet = ['PTC', 'MTC', 'SSC','BASE64']
 
         self.comboDecrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                         style=wx.CB_READONLY)
@@ -193,12 +199,18 @@ class GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Quit, ExitItem)
         self.Bind(wx.EVT_MENU, self.showHelp, HelpItem)
         NavEdit = wx.Menu()
-        self.ReadFF = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитати з файлу", "Зчитати дані з файлу")
-        self.WriteTF = wx.MenuItem(NavEdit, wx.ID_FILE1, "Записати до файлу", "Записати дані до файлу")
-        self.ReadFF.Enable(False)
-        self.WriteTF.Enable(False)
-        NavEdit.Append(self.ReadFF)
-        NavEdit.Append(self.WriteTF)
+        self.ReadFFС = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитування даних з файлу", "Зчитати дані з файлу")
+        self.WriteTFС = wx.MenuItem(NavEdit, wx.ID_FILE1, "Збереження шифрованих даних", "Записати дані до файлу")
+        self.ReadFFD = wx.MenuItem(NavEdit, wx.ID_FILE2, "Зчитування шифру з файлу", "Зчитати дані з файлу")
+        self.WriteTFD = wx.MenuItem(NavEdit, wx.ID_FILE3, "Збереження дешифрованих даних", "Записати дані до файлу")
+        self.ReadFFС.Enable(False)
+        self.WriteTFС.Enable(False)
+        self.ReadFFD.Enable(False)
+        self.WriteTFD.Enable(False)
+        NavEdit.Append(self.ReadFFС)
+        NavEdit.Append(self.WriteTFС)
+        NavEdit.Append(self.ReadFFD)
+        NavEdit.Append(self.WriteTFD)
         FileB.AppendSubMenu(editMenu, "&Редагування")
         FileB.Append(ExitItem)
         menuBar.Append(FileB, '&Файл')
@@ -210,8 +222,10 @@ class GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_cut, cutItem)
         self.Bind(wx.EVT_MENU, self.on_paste, pasteItem)
         self.Bind(wx.EVT_MENU,self.on_copy, copyItem)
-        self.Bind(wx.EVT_MENU, self.wF, self.WriteTF)
-        self.Bind(wx.EVT_MENU, self.rF, self.ReadFF)
+        self.Bind(wx.EVT_MENU, lambda e: self.wF('Збереження шифрованих даних'), self.WriteTFС)
+        self.Bind(wx.EVT_MENU, lambda e: self.rF('Зчитування даних з файлу'), self.ReadFFС)
+        self.Bind(wx.EVT_MENU, lambda e: self.wF('Збереження дешифрованих даних'), self.WriteTFD)
+        self.Bind(wx.EVT_MENU, lambda e: self.rF('Зчитування шифру з файлу'), self.ReadFFD)
 
         return menuBar
 
@@ -237,13 +251,15 @@ class GUI(wx.Frame):
         widget = self.FindFocus()
         widget.WriteText(pyperclip.paste())
 
-    def wF(self, e):
+    def wF(self, m):
         u = UpprP(self, title='Запис до файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
+        u.set_mode(m)
         u.ShowModal()
         u.Destroy()
 
-    def rF(self, e):
-        u = UpprP(self, title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
+    def rF(self, m):
+        u = UpprP(self,title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
+        u.set_mode(m)
         u.ShowModal()
         u.Destroy()
 
