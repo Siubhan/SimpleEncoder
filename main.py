@@ -1,4 +1,3 @@
-
 import webbrowser
 
 import pyperclip as pyperclip
@@ -11,11 +10,13 @@ from PlusTwoCh import PTC
 from MinusTenCh import MTC
 from SSC import SSC
 from LCA import Coder
+from Hewwo import Hewwo
 
 
 class GUI(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(GUI, self).__init__(*args, **kwargs)
+
         self.mainPanel = wx.Panel(self)
         self.cryptoPanel = wx.Panel(self)
         self.decryptoPanel = wx.Panel(self)
@@ -32,6 +33,10 @@ class GUI(wx.Frame):
         self.font2 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.FONTWEIGHT_LIGHT)
 
         self.initGui()
+        h=Hewwo(self, style=wx.CAPTION)
+        h.ShowModal()
+        h.Destroy()
+
 
     def crypto(self, txt):
         par = self.comboCrypt.GetStringSelection()
@@ -40,8 +45,8 @@ class GUI(wx.Frame):
             self.rsltEncr.AppendText(PTC('encrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltEncr.AppendText(MTC('encrypt', txt).getVal())
-        elif par=='BASE64':
-            self.rsltEncr.AppendText(Coder('encrypt',txt).getValue())
+        elif par == 'BASE64':
+            self.rsltEncr.AppendText(Coder('encrypt', txt).getValue())
         else:
             self.rsltEncr.AppendText(SSC('encrypt', txt).getVal())
 
@@ -52,8 +57,8 @@ class GUI(wx.Frame):
             self.rsltDecr.AppendText(PTC('decrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltDecr.AppendText(MTC('decrypt', txt).getVal())
-        elif par=='BASE64':
-            self.rsltDecr.AppendText(Coder('decrypt',txt).getValue())
+        elif par == 'BASE64':
+            self.rsltDecr.AppendText(Coder('decrypt', txt).getValue())
         else:
             self.rsltDecr.AppendText(SSC('decrypt', txt).getVal())
 
@@ -120,7 +125,7 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
         self.origMes.AppendText("Введіть дані, для шифрування")
 
-        cryptMet = ['PTC', 'MTC', 'SSC','BASE64']
+        cryptMet = ['PTC', 'MTC', 'SSC', 'BASE64']
 
         self.comboCrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                       style=wx.CB_READONLY)
@@ -161,7 +166,7 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
 
         self.rawData.AppendText("Введіть дані, для дешифрування")
-        cryptMet = ['PTC', 'MTC', 'SSC','BASE64']
+        cryptMet = ['PTC', 'MTC', 'SSC', 'BASE64']
 
         self.comboDecrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                         style=wx.CB_READONLY)
@@ -199,10 +204,10 @@ class GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Quit, ExitItem)
         self.Bind(wx.EVT_MENU, self.showHelp, HelpItem)
         NavEdit = wx.Menu()
-        self.ReadFFС = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитування даних з файлу", "Зчитати дані з файлу")
-        self.WriteTFС = wx.MenuItem(NavEdit, wx.ID_FILE1, "Збереження шифрованих даних", "Записати дані до файлу")
-        self.ReadFFD = wx.MenuItem(NavEdit, wx.ID_FILE2, "Зчитування шифру з файлу", "Зчитати дані з файлу")
-        self.WriteTFD = wx.MenuItem(NavEdit, wx.ID_FILE3, "Збереження дешифрованих даних", "Записати дані до файлу")
+        self.ReadFFС = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитування даних з файлу")
+        self.WriteTFС = wx.MenuItem(NavEdit, wx.ID_FILE1, "Збереження шифрованих даних")
+        self.ReadFFD = wx.MenuItem(NavEdit, wx.ID_FILE2, "Зчитування шифру з файлу")
+        self.WriteTFD = wx.MenuItem(NavEdit, wx.ID_FILE3, "Збереження дешифрованих даних")
         self.ReadFFС.Enable(False)
         self.WriteTFС.Enable(False)
         self.ReadFFD.Enable(False)
@@ -221,11 +226,11 @@ class GUI(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.on_cut, cutItem)
         self.Bind(wx.EVT_MENU, self.on_paste, pasteItem)
-        self.Bind(wx.EVT_MENU,self.on_copy, copyItem)
-        self.Bind(wx.EVT_MENU, lambda e: self.wF('Збереження шифрованих даних'), self.WriteTFС)
-        self.Bind(wx.EVT_MENU, lambda e: self.rF('Зчитування даних з файлу'), self.ReadFFС)
-        self.Bind(wx.EVT_MENU, lambda e: self.wF('Збереження дешифрованих даних'), self.WriteTFD)
-        self.Bind(wx.EVT_MENU, lambda e: self.rF('Зчитування шифру з файлу'), self.ReadFFD)
+        self.Bind(wx.EVT_MENU, self.on_copy, copyItem)
+        self.Bind(wx.EVT_MENU, lambda e: self.wF(1), self.WriteTFС)
+        self.Bind(wx.EVT_MENU, lambda e: self.rF(4), self.ReadFFС)
+        self.Bind(wx.EVT_MENU, lambda e: self.wF(2), self.WriteTFD)
+        self.Bind(wx.EVT_MENU, lambda e: self.rF(3), self.ReadFFD)
 
         return menuBar
 
@@ -252,21 +257,22 @@ class GUI(wx.Frame):
         widget.WriteText(pyperclip.paste())
 
     def wF(self, m):
+        self.m=m
+
         u = UpprP(self, title='Запис до файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
-        u.set_mode(m)
         u.ShowModal()
         u.Destroy()
 
     def rF(self, m):
-        u = UpprP(self,title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
-        u.set_mode(m)
+        self.m=m
+
+        u = UpprP(self, title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
+
         u.ShowModal()
         u.Destroy()
-
 
 
 if __name__ == '__main__':
     app = wx.App()
     gui = GUI(None, size=(600, 420), style=wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.CAPTION)
-
     app.MainLoop()
