@@ -140,8 +140,8 @@ class GUI(wx.Frame):
         self.WriteTFD.Enable(True)
         bitmap2 = wx.StaticBitmap(self.decryptoPanel, -1, self.bgIm, (0, 0))
         txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
-        txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(400, 40))
-        txt3 = TransparentText(bitmap2, label="Дешифровані дані", pos=(100, 40))
+        txt2 = TransparentText(bitmap2, label="Дешифровані дані", pos=(400, 40))
+        txt3 = TransparentText(bitmap2, label="Зашифровані дані", pos=(100, 40))
         txt4 = TransparentText(bitmap2, label="Вибір алгоритму:", pos=(35, 307))
 
         self.rsltDecr = wx.TextCtrl(bitmap2, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(260, 220), pos=(305, 70))

@@ -6,7 +6,6 @@ class UpprP(wx.Dialog):
         super(UpprP, self).__init__(*args, **kwargs)
         self.SetSize(360, 130)
         self.set_mode()
-        print(self.mode)
         self.InitUI()
 
     def InitUI(self):
@@ -39,24 +38,28 @@ class UpprP(wx.Dialog):
     def bOK(self):
         atr = r'' + str(self.tE.GetValue())
 
-        if self.mode == 'Зчитування даних з файлу':
+        if self.mode == 4:
             try:
                 with open(atr,'r') as file:
                     self.Parent.origMes.Clear()
                     self.Parent.origMes.AppendText(file.read())
+                    wx.MessageBox('Файл прочитано!', 'Статус', wx.OK | wx.ICON_INFORMATION)
             except FileNotFoundError:
-                print('file not found!')
-        elif self.mode == 'Збереження шифрованих даних':
+                wx.MessageBox('Зчитуваного файлу не існує!', 'Помилка!', wx.OK | wx.ICON_ERROR)
+        elif self.mode == 1:
             with open(atr, 'w') as file:
                 file.write(self.Parent.rsltEncr.GetValue())
-        elif self.mode == 'Збереження дешифрованих даних':
+                wx.MessageBox('Файл записано!', 'Статус', wx.OK | wx.ICON_INFORMATION)
+        elif self.mode == 2:
             with open(atr, 'w') as file:
                 file.write(self.Parent.rsltDecr.GetValue())
+                wx.MessageBox('Файл записано!', 'Статус', wx.OK | wx.ICON_INFORMATION)
         else:
             try:
                 with open(atr,'r') as file:
                     self.Parent.rawData.Clear()
                     self.Parent.rawData.AppendText(file.read())
+                    wx.MessageBox('Файл прочитано!', 'Статус', wx.OK | wx.ICON_INFORMATION)
             except FileNotFoundError:
-                print('file not found!')
+                wx.MessageBox('Зчитуваного файлу не існує!', 'Помилка!', wx.OK | wx.ICON_ERROR)
         self.ClMe()
