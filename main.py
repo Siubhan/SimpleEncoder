@@ -1,16 +1,18 @@
+# -*- coding: utf-8 -*-
+import os
 import webbrowser
 
 import pyperclip as pyperclip
 import wx
 import wx.html
 
+from Ki import Ki_RSA
+from LCA import Coder
+from MinusTenCh import MTC
+from PlusTwoCh import PTC
+from SSC import SSC
 from TransparentText import TransparentText
 from Uppr import UpprP
-from PlusTwoCh import PTC
-from MinusTenCh import MTC
-from SSC import SSC
-from LCA import Coder
-from Hewwo import Hewwo
 
 
 class GUI(wx.Frame):
@@ -33,15 +35,17 @@ class GUI(wx.Frame):
         self.font2 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.FONTWEIGHT_LIGHT)
 
         self.initGui()
-        h=Hewwo(self, style=wx.CAPTION)
-        h.ShowModal()
-        h.Destroy()
+        #h=Hewwo(self, style=wx.CAPTION)
+        #h.ShowModal()
+        #h.Destroy()
 
 
-    def crypto(self, txt):
+    def crypto(self, txt, publ=None):
         par = self.comboCrypt.GetStringSelection()
         self.rsltEncr.Clear()
-        if par == 'PTC':
+        if par == 'RSA':
+            self.rsltEncr.AppendText(Ki_RSA('encrypt', txt, self.u1.a).getVal())
+        elif par == 'PTC':
             self.rsltEncr.AppendText(PTC('encrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltEncr.AppendText(MTC('encrypt', txt).getVal())
@@ -53,7 +57,9 @@ class GUI(wx.Frame):
     def decrypt(self, txt):
         par = self.comboDecrypt.GetStringSelection()
         self.rsltDecr.Clear()
-        if par == 'PTC':
+        if par == 'RSA':
+            self.rsltDecr.AppendText(Ki_RSA('decrypt', txt).getVal())
+        elif par == 'PTC':
             self.rsltDecr.AppendText(PTC('decrypt', txt).getVal())
         elif par == 'MTC':
             self.rsltDecr.AppendText(MTC('decrypt', txt).getVal())
@@ -80,22 +86,25 @@ class GUI(wx.Frame):
         self.b1.SetFont(self.font2)
         self.b2.SetFont(self.font2)
         self.b3.SetFont(self.font2)
-        self.ReadFFС.Enable(False)
-        self.WriteTFС.Enable(False)
+        self.ReadFFC.Enable(False)
+        self.WriteTFC.Enable(False)
         self.ReadFFD.Enable(False)
         self.WriteTFD.Enable(False)
         self.mainPanel.Layout()
         self.Layout()
 
     def showHelp(self, event):
-        url = r'file:///Users/shiva/PycharmProjects/kp/dtp/index.html'
+
+        url = os.getcwd() + r'/dtp/index.html'
+        webbrowser.open_new(url)
+        # url = r'file:///Users/shiva/PycharmProjects/kp/dtp/index.html'
         b = webbrowser.get('Safari')
         b.open_new(url)
 
     def setCryptoPanel(self, event):
         self.mainPanel.Hide()
-        self.ReadFFС.Enable(True)
-        self.WriteTFС.Enable(True)
+        self.ReadFFC.Enable(True)
+        self.WriteTFC.Enable(True)
         bitmap2 = wx.StaticBitmap(self.cryptoPanel, -1, self.bgIm, (0, 0))
         txt1 = TransparentText(bitmap2, label="JUMBLE UP", pos=(230, 10))
         txt2 = TransparentText(bitmap2, label="Зашифровані дані", pos=(380, 45))
@@ -125,14 +134,46 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
         self.origMes.AppendText("Введіть дані, для шифрування")
 
-        cryptMet = ['PTC', 'MTC', 'SSC', 'BASE64']
-
+        cryptMet = ['PTC','RSA', 'MTC', 'SSC', 'BASE64']
         self.comboCrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                       style=wx.CB_READONLY)
+
+        self.Bind(wx.EVT_COMBOBOX,lambda e: self.fun(self.comboCrypt.GetValue()),self.comboCrypt)
+
         self.comboCrypt.SetFont(self.font2)
         self.cryptoPanel.Show()
         self.cryptoPanel.Layout()
         self.Layout()
+
+    def fun(self, val):
+        if val =='RSA':
+            self.m=99
+            self.u1 = UpprP(self,  title='Зчитування публічного ключа з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
+            self.u1.ShowModal()
+            self.u1.Destroy()
+
+            self.rsltEncr.Clear()
+            self.rsltEncr.AppendText('RSA aлгоритм записує шифр лише у файл,\n'
+                                     'коректний вивід шифру у текстове поле на даний момент неможливий')
+        else:
+            self.rsltEncr.Clear()
+            self.origMes.Clear()
+            self.origMes.AppendText("Введіть дані, для шифрування")
+
+    def defun(self,val):
+        if val =='RSA':
+            self.rawData.Clear()
+            self.rawData.AppendText('Дешифрування можливе лише наступним чином:\n'
+                                    '1. Натиснути кнопку "Дешифрувати"\n'
+                                    '2. Ввести назву файла, що дешифрується\n'
+                                    '3. Підтвердити дію')
+        else:
+            self.rsltDecr.Clear()
+            self.rawData.Clear()
+            self.rawData.AppendText("Введіть дані, для шифрування")
+
+
+
 
     def setDecrPanel(self, event):
         self.mainPanel.Hide()
@@ -166,13 +207,14 @@ class GUI(wx.Frame):
         txt4.SetFont(self.font2)
 
         self.rawData.AppendText("Введіть дані, для дешифрування")
-        cryptMet = ['PTC', 'MTC', 'SSC', 'BASE64']
+        cryptMet = ['PTC','RSA', 'MTC', 'SSC', 'BASE64']
 
         self.comboDecrypt = wx.ComboBox(bitmap2, value=cryptMet[0], choices=cryptMet, pos=(150, 300),
                                         style=wx.CB_READONLY)
-
         self.comboDecrypt.SetFont(self.font2)
         btnEnc.Bind(wx.EVT_BUTTON, lambda e: self.decrypt(self.rawData.GetValue()))
+        self.Bind(wx.EVT_COMBOBOX,lambda e: self.defun(self.comboDecrypt.GetValue()),self.comboDecrypt)
+
         self.decryptoPanel.Show()
         self.decryptoPanel.Layout()
         self.Layout()
@@ -204,16 +246,16 @@ class GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Quit, ExitItem)
         self.Bind(wx.EVT_MENU, self.showHelp, HelpItem)
         NavEdit = wx.Menu()
-        self.ReadFFС = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитування даних з файлу")
-        self.WriteTFС = wx.MenuItem(NavEdit, wx.ID_FILE1, "Збереження шифрованих даних")
+        self.ReadFFC = wx.MenuItem(NavEdit, wx.ID_FILE, "Зчитування даних з файлу")
+        self.WriteTFC = wx.MenuItem(NavEdit, wx.ID_FILE1, "Збереження шифрованих даних")
         self.ReadFFD = wx.MenuItem(NavEdit, wx.ID_FILE2, "Зчитування шифру з файлу")
         self.WriteTFD = wx.MenuItem(NavEdit, wx.ID_FILE3, "Збереження дешифрованих даних")
-        self.ReadFFС.Enable(False)
-        self.WriteTFС.Enable(False)
+        self.ReadFFC.Enable(False)
+        self.WriteTFC.Enable(False)
         self.ReadFFD.Enable(False)
         self.WriteTFD.Enable(False)
-        NavEdit.Append(self.ReadFFС)
-        NavEdit.Append(self.WriteTFС)
+        NavEdit.Append(self.ReadFFC)
+        NavEdit.Append(self.WriteTFC)
         NavEdit.Append(self.ReadFFD)
         NavEdit.Append(self.WriteTFD)
         FileB.AppendSubMenu(editMenu, "&Редагування")
@@ -227,8 +269,8 @@ class GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_cut, cutItem)
         self.Bind(wx.EVT_MENU, self.on_paste, pasteItem)
         self.Bind(wx.EVT_MENU, self.on_copy, copyItem)
-        self.Bind(wx.EVT_MENU, lambda e: self.wF(1), self.WriteTFС)
-        self.Bind(wx.EVT_MENU, lambda e: self.rF(4), self.ReadFFС)
+        self.Bind(wx.EVT_MENU, lambda e: self.wF(1), self.WriteTFC)
+        self.Bind(wx.EVT_MENU, lambda e: self.rF(4), self.ReadFFC)
         self.Bind(wx.EVT_MENU, lambda e: self.wF(2), self.WriteTFD)
         self.Bind(wx.EVT_MENU, lambda e: self.rF(3), self.ReadFFD)
 
@@ -265,9 +307,7 @@ class GUI(wx.Frame):
 
     def rF(self, m):
         self.m=m
-
-        u = UpprP(self, title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
-
+        u = UpprP(self,  title='Зчитування з файлу', style=wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION)
         u.ShowModal()
         u.Destroy()
 
